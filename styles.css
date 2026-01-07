@@ -1,0 +1,270 @@
+/* Custom Styles für Wetter News App */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Weather Card Animations */
+.weather-card {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.weather-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.weather-card:hover::before {
+    opacity: 1;
+}
+
+/* Forecast Card Styling */
+.forecast-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.forecast-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.forecast-icon {
+    font-size: 3rem;
+    margin: 1rem 0;
+    display: block;
+}
+
+.forecast-day {
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.forecast-temp {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2563eb;
+    margin: 0.5rem 0;
+}
+
+.forecast-desc {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* Loading Animation */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Pulse Animation for Warnings */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.pulse-animation {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Glassmorphism Effect */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Weather Icons Animation */
+.weather-icon-animate {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    h2 {
+        font-size: 2rem !important;
+    }
+
+    h3 {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* Button Hover Effects */
+button, .btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+button::before, .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+button:hover::before, .btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Card Reveal Animation */
+@keyframes cardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card-reveal {
+    animation: cardReveal 0.6s ease forwards;
+}
+
+/* Weather Background Patterns */
+.weather-pattern-sun {
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(255, 200, 0, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 150, 0, 0.2) 0%, transparent 50%);
+}
+
+.weather-pattern-rain {
+    background-image:
+        linear-gradient(0deg, rgba(0, 0, 0, 0.05) 25%, transparent 25%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.05) 50%, transparent 50%);
+    background-size: 4px 4px;
+}
+
+.weather-pattern-cloud {
+    background-image:
+        radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+}
+
+/* Mobile Menu Animation */
+#mobileMenu {
+    transition: all 0.3s ease;
+}
+
+#mobileMenu.show {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Focus Styles for Accessibility */
+a:focus, button:focus, input:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    nav, footer, .newsletter {
+        display: none;
+    }
+
+    .weather-card {
+        page-break-inside: avoid;
+    }
+}
