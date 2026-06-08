@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BVB/BLT Liniennetzplan Basel 2026</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f8f6f1; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+  h1 {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #1a1a1a;
+    padding: 14px 0 4px;
+    text-transform: uppercase;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  #map-container {
+    width: 100%;
+    overflow: auto;
+    background: #fff;
+    border-top: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+  }
+  svg {
+    display: block;
+    min-width: 1800px;
+  }
+  .line-track { stroke: #1e1e1e; stroke-width: 3.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .stop-circle { fill: #fff; stroke: #1e1e1e; stroke-width: 2; }
+  .stop-major { fill: #fff; stroke: #1e1e1e; stroke-width: 2.5; }
+  .stop-terminus { fill: #1e1e1e; stroke: #1e1e1e; stroke-width: 2; }
+  .stop-label {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 9px;
+    fill: #1a1a1a;
+    letter-spacing: 0.02em;
+  }
+  .line-num {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    fill: #fff;
+  }
+  .line-badge { fill: #1e1e1e; }
+  .rhein { fill: #b8d4e8; stroke: #8bb4d0; stroke-width: 1; opacity: 0.7; }
+  .border-marker { stroke: #888; stroke-width: 1.2; stroke-dasharray: 6,4; fill: none; }
+  .border-label { font-size: 8px; fill: #666; font-style: italic; }
+  .country-label { font-size: 9px; fill: #6a9ab0; font-style: italic; letter-spacing: 0.05em; }
+  .legend { font-size: 10px; fill: #333; }
+  .weiche { fill: #1e1e1e; }
+  .switch-diamond { fill: #1e1e1e; }
+</style>
+</head>
+<body>
+<h1>Liniennetzplan Tram — Basel 2026</h1>
+<div class="subtitle">BVB / BLT &nbsp;·&nbsp; Gültig ab 14. Dezember 2025 &nbsp;·&nbsp; Alle Tramlinien</div>
+<div id="map-container">
+<svg id="map" viewBox="0 0 1800 1100" width="1800" height="1100">
+<defs>
+  <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 Z" fill="#1e1e1e"/>
+  </marker>
+</defs>
+<rect width="1800" height="1100" fill="#f5f3ee"/>
+
+<!-- ===================== RHEIN (Rhine River) ===================== -->
+<path class="rhein" d="
+  M 10,545 Q 80,548 150,542 Q 240,536 310,528
+  Q 400,518 480,510 Q 540,504 582,497
+  Q 620,492 660,480 Q 700,468 730,455
+  Q 755,444 780,438 Q 810,432 840,430
+  Q 880,427 920,425 Q 970,422 1020,418
+  Q 1060,415 1100,410 Q 1130,406 1160,400
+  Q 1190,395 1220,385 Q 1255,372 1280,355
+  Q 1310,335 1340,308 Q 1370,278 1390,245
+  Q 1410,215 1420,185 Q 1430,160 1432,130
+  L 1432,80 L 1460,80 L 1460,140
+  Q 1458,170 1448,205 Q 1435,240 1415,270
+  Q 1390,305 1358,335 Q 1325,362 1290,382
+  Q 1255,400 1220,412 Q 1185,424 1150,430
+  Q 1100,437 1040,442 Q 980,447 920,450
+  Q 870,453 830,457 Q 800,460 770,468
+  Q 742,476 718,488 Q 695,500 670,510
+  Q 640,520 600,528 Q 550,537 490,542
+  Q 420,548 340,553 Q 250,558 155,558
+  Q 90,558 10,556 Z" />
+
+<!-- Rhine label -->
+<text x="420" y="520" class="country-label" transform="rotate(-4, 420, 520)">RHEIN</text>
+
+<!-- ===================== COUNTRY BORDERS ===================== -->
+<!-- CH/D border near Weil am Rhein -->
+<line class="border-marker" x1="235" y1="230" x2="280" y2="330"/>
+<text x="200" y="225" class="border-label">CH/D</text>
+
+<!-- CH/F border near Saint-Louis -->
+<line class="border-marker" x1="118" y1="450" x2="118" y2="560"/>
+<text x="60" y="448" class="border-label">CH/F</text>
+
+<!-- CH/F border near Riehen -->
+<line class="border-marker" x1="1280" y1="70" x2="1380" y2="70"/>
+<text x="1310" y="62" class="border-label">CH/D</text>
+
+<script id="map-data">
+// ============================================================
+//  STOP DEFINITIONS  (name: [x, y, labelAnchor, labelDx, labelDy])
+//  labelAnchor: "start" | "end" | "middle"
+//  labelDx, labelDy: offset from stop center
+// ============================================================
+const S = {
+  // ─── KLEIN-BASEL (north bank) ─────────────────────────
+  'Rheingasse':              [815, 443, 'middle', 0, -10],
+  'Claraplatz':              [855, 428, 'start',  8,  4],
+  'Clarastrasse':            [895, 412, 'start',  8,  4],
+  'Messeplatz':              [955, 388, 'middle', 0, -10],
+  'Riehenring':              [920, 380, 'end',   -8,  4],
+  'Gewerbeschule':           [1010, 358,'start',  8,  4],
+  'Badischer Bahnhof':       [1055, 332,'middle', 0, -11],
+  'Hirzbrunnen/Claraspital': [1092, 310,'start',  8,  4],
+  'Eglisee':                 [1118, 290,'start',  8,  4],
+  'Kaserne':                 [848, 440, 'middle', 0, 10],
+  'Feldbergstrasse':         [800, 448, 'middle', 0, 10],
+  'Bläsiring':               [755, 455, 'middle', 0, 10],
+
+  // ─── DREIROSENBRÜCKE + UMGEBUNG ──────────────────────
+  'Dreirosenbrücke':         [592, 480, 'middle', 0, -10],
+  'Brombacherstrasse':       [640, 472, 'middle', 0, -10],
+  'Musical Theater':         [688, 464, 'middle', 0, -10],
+
+  // ─── LINE 8 NORDOST (Richtung Weil am Rhein) ─────────
+  'Ciba':                    [535, 462, 'end',   -8,  4],
+  'Wiesenplatz':             [488, 438, 'end',   -8,  4],
+  'Kleinhüningen':           [438, 408, 'end',   -8,  4],
+  'Kleinhüningeranlage':     [392, 382, 'end',   -8,  4],
+  'Dreiländerbrücke':        [350, 355, 'end',   -8,  4],
+  'Riedlistr/Kesselhaus':    [308, 332, 'end',   -8,  4],
+  'Weil am Rhein Bahnhof':   [258, 305, 'middle', 0, -11],
+
+  // ─── LINIE 1 / 11 / 21 ST. JOHANN (Grossbasel, Südufer) ─
+  'Novartis Campus':         [568, 518, 'middle', 0, 12],
+  'Voltaplatz':              [540, 535, 'start',  8, -6],
+  'Bahnhof St. Johann':      [512, 550, 'start',  8, -6],
+  'Kannenfeldplatz':         [486, 555, 'end',   -8, -6],
+  'Mülhauserstrasse':        [580, 525, 'middle', 0, -10],
+  'St. Johanns-Tor':         [600, 510, 'end',   -8, -6],
+  'Johanniterbrücke':        [618, 498, 'middle', 0, 12],
+  'Universitätsspital':      [640, 502, 'end',   -8,  4],
+
+  // ─── LINIE 11 WEST (Richtung St-Louis, Südufer) ──────
+  'St-Louis Grenze':         [118, 558, 'end',  -8, -6],
+  'Hüningerstrasse':         [165, 553, 'end',  -8,  4],
+
+  // ─── LINIE 3 NORDWEST (Saint-Louis FR) ───────────────
+  'Burgfelderhof':           [162, 558, 'end',   -8,  4],
+  'Waldighoferstrasse':      [198, 556, 'end',   -8,  4],
+  'Felix Platter-Spital':    [234, 554, 'end',   -8,  4],
+  'Strassburgerallee':       [266, 550, 'end',   -8,  4],
+  'Burgfelderplatz':         [298, 548, 'middle', 0, -10],
+  'Hegenheimerstrasse':      [335, 540, 'middle', 0, 12],
+  'Birmannsgasse':           [360, 558, 'middle', 0, 12],
+  'Brausebad':               [385, 572, 'middle', 0, 12],
+  'Schützenhaus':            [418, 578, 'middle', 0, 12],
+  'Zoo Bachletten':          [452, 582, 'middle', 0, 12],
+  'Gare de Saint-Louis':     [35,  565, 'start',  8,  4],
+  'Soleil':                  [65,  564, 'start',  8,  4],
+  'Place Mermoz':            [93,  562, 'start',  8,  4],
+  'Saint-Exupéry':           [122, 560, 'start',  8,  4],
+
+  // ─── LINIE 6 WEST (Allschwil) ────────────────────────
+  'Allschwilerplatz':        [242, 576, 'end',   -8,  4],
+  'Allschwil Morgartenring': [178, 572, 'end',   -8, -6],
+
+  // ─── LINIE 8 WEST (Richtung Neuweilerstrasse) ────────
+  'Bundesplatz':             [302, 590, 'end',   -8,  4],
+  'Bernerring':              [268, 595, 'end',   -8,  4],
+  'Laupenring':              [236, 600, 'end',   -8,  4],
+  'Neubad':                  [204, 605, 'end',   -8,  4],
+  'Im langen Loh':           [174, 610, 'end',   -8,  4],
+  'Neuweilerstrasse':        [140, 614, 'end',   -8, -6],
+
+  // ─── ZENTRUM GROSSBASEL ──────────────────────────────
+  'Markthalle':              [490, 590, 'end',   -8, -6],
+  'Heuwaage':                [528, 570, 'middle', 0, 12],
+  'Theater':                 [566, 560, 'middle', 0, 12],
+  'Barfüsserplatz':          [622, 545, 'middle', 0, -10],
+  'Marktplatz':              [718, 508, 'middle', 0, -10],
+  'Schifflände':             [780, 462, 'middle', 0, -10],
+  'Bankverein':              [686, 538, 'middle', 0, 12],
+  'Aeschenplatz':            [740, 552, 'middle', 0, 12],
+  'Kunstmuseum':             [748, 525, 'end',   -8, -5],
+  'Wettsteinplatz':          [790, 505, 'start',  8,  4],
+  'Bahnhof SBB':             [462, 618, 'middle', 0, -11],
+  'IWB':                     [410, 614, 'end',   -8,  4],
+  'Margarethen':             [375, 608, 'end',   -8,  4],
+  'Zoo Dorenbach':           [340, 602, 'end',   -8,  4],
+  'Binningen Hohle Gasse':   [298, 596, 'end',   -8,  4],
+  'Binningen Kronenplatz':   [252, 590, 'end',   -8, -6],
+  'Kirschgarten':            [555, 600, 'start',  8,  4],
+
+  // ─── RIEHEN ──────────────────────────────────────────
+  'Riehen Habermatten':      [1095, 270,'start',  8,  4],
+  'Riehen Niederholzboden':  [1118, 248,'start',  8,  4],
+  'Riehen Burgstrasse':      [1138, 228,'start',  8,  4],
+  'Riehen Pfaffenloh':       [1158, 208,'start',  8,  4],
+  'Riehen Bettingerstrasse': [1178, 188,'start',  8,  4],
+  'Riehen Dorf':             [1195, 170,'start',  8,  4],
+  'Riehen Fondation Beyeler':[1212, 152,'start',  8,  4],
+  'Riehen Weilstrasse':      [1228, 136,'start',  8,  4],
+  'Riehen Lörracherstrasse': [1244, 120,'start',  8,  4],
+  'Riehen Grenze':           [1260, 104,'start',  8, -5],
+
+  // ─── LINIE 10 SÜD (Dreispitz → Dornach) ──────────────
+  'Peter-Merian':            [434, 645, 'end',   -8,  4],
+  'Münchensteinersstrasse':  [415, 668, 'end',   -8,  4],
+  'MParc':                   [396, 690, 'end',   -8,  4],
+  'Dreispitz':               [376, 713, 'end',   -8,  4],
+  'Münchenstein Neuewelt':   [353, 740, 'end',   -8,  4],
+  'Münchenstein Birseckstrasse':[331,764,'end',  -8,  4],
+  'Münchenstein Zollweiden': [310, 788, 'end',   -8,  4],
+  'Münchenstein Hofmatt':    [290, 810, 'end',   -8,  4],
+  'Münchenstein Elektra Birseck':[270,832,'end', -8,  4],
+  'Münchenstein Dorf':       [250, 854, 'end',   -8,  4],
+  'Arlesheim Walzwerk':      [232, 874, 'end',   -8,  4],
+  'Arlesheim Baselstrasse':  [216, 892, 'end',   -8,  4],
+  'Arlesheim Im Lee':        [200, 908, 'end',   -8,  4],
+  'Arlesheim Dorf':          [185, 924, 'end',   -8,  4],
+  'Arlesheim Stollenrain':   [170, 940, 'end',   -8,  4],
+  'Dornach Bahnhof':         [152, 958, 'end',   -8, -5],
+
+  // ─── LINIE 10 WEST (Ettingen/Rodersdorf) ─────────────
+  'Zoo':                     [490, 607, 'end',   -8,  4],
+  'Binningen Dorenbach':     [466, 626, 'end',   -8,  4],
+  'Binningen Oberdorf':      [444, 644, 'end',   -8,  4],
+  'Binningen Schloss':       [422, 662, 'end',   -8,  4],
+  'Binningen Bottmingermühle':[400,680, 'end',   -8,  4],
+  'Bottmingen Batteriestrasse':[378,698,'end',   -8,  4],
+  'Bottmingen Schloss':      [356, 716, 'end',   -8,  4],
+  'Oberwil Stallen':         [334, 734, 'end',   -8,  4],
+  'Oberwil Zentrum':         [312, 750, 'end',   -8,  4],
+  'Oberwil Hüslimatt':       [290, 766, 'end',   -8,  4],
+  'Therwil Zentrum':         [268, 782, 'end',   -8,  4],
+  'Therwil Känelmatt':       [246, 798, 'end',   -8,  4],
+  'Ettingen Dorf':           [224, 814, 'end',   -8,  4],
+  'Witterswil Sonnenrain':   [202, 830, 'end',   -8,  4],
+  'Witterswil Station':      [180, 845, 'end',   -8,  4],
+  'Bättwil Dorf':            [158, 860, 'end',   -8,  4],
+  'Flüh Station':            [136, 875, 'end',   -8,  4],
+  'Leymen Station':          [115, 890, 'start',  8,  4],
+  'Rodersdorf Station':      [95,  905, 'start',  8, -5],
+
+  // ─── LINIE 14 OST (Muttenz / Pratteln) ───────────────
+  'Hardstrasse':             [778, 562, 'middle', 0, 12],
+  'Sevogelplatz':            [822, 572, 'middle', 0, 12],
+  'Grellingerstrasse':       [866, 582, 'middle', 0, 12],
+  'Karl Barth-Platz':        [908, 592, 'middle', 0, 12],
+  'Zeughaus':                [948, 600, 'middle', 0, 12],
+  'St. Jakob':               [990, 612, 'start',  8,  4],
+  'Muttenz Freidorf':        [1030,625, 'start',  8,  4],
+  'Muttenz Käppeli':         [1062,638, 'start',  8,  4],
+  'Muttenz Zum Park':        [1094,650, 'start',  8,  4],
+  'Muttenz Schützenhausstrasse':[1124,662,'start',8,  4],
+  'Muttenz Dorf':            [1155,675, 'start',  8,  4],
+  'Muttenz Rothausstrasse':  [1184,688, 'start',  8,  4],
+  'Muttenz Lachmatt':        [1212,700, 'start',  8,  4],
+  'Pratteln Kästeli':        [1238,712, 'start',  8,  4],
+  'Pratteln Gempenstrasse':  [1262,724, 'start',  8,  4],
+  'Pratteln Bahnhofstrasse': [1286,736, 'start',  8,  4],
+  'Pratteln Schlossstrasse': [1310,748, 'start',  8, -5],
+
+  // ─── LINIE 3 OST (Birsfelden) ────────────────────────
+  'Denkmal':                 [758, 558, 'end',  -8,  4],
+  'St. Alban-Tor':           [810, 572, 'middle', 0, 12],
+  'Waldenburgerstrasse':     [848, 585, 'middle', 0, 12],
+  'Breite':                  [888, 598, 'middle', 0, 12],
+  'Birsfelden Bären':        [928, 612, 'start',  8,  4],
+  'Birsfelden Schulstrasse': [968, 626, 'start',  8,  4],
+  'Birsfelden Salinenstrasse':[1008,640,'start',  8,  4],
+  'Birsfelden Hard':         [1048,652, 'start',  8, -5],
+
+  // ─── LINIE 15 / 16 SÜD (Bruderholz) ─────────────────
+  'Grosspeterstrasse':       [720, 562, 'start',  8,  4],
+  'Heiliggeistkirche':       [570, 638, 'end',   -8,  4],
+  'Tellplatz':               [560, 656, 'end',   -8,  4],
+  'Bruderholzstrasse':       [548, 675, 'end',   -8,  4],
+  'Wolfschlucht':            [538, 694, 'end',   -8,  4],
+  'Lerchenstrasse':          [528, 712, 'end',   -8,  4],
+  'Studio Basel':            [518, 730, 'end',   -8,  4],
+  'Airolostrasse':           [508, 748, 'end',   -8,  4],
+  'Bruderholz':              [496, 768, 'end',   -8, -5],
+  'Solothurnerstrasse':      [536, 638, 'start',  8,  4],
+  'Bhfeingang Gundeldingen': [518, 655, 'start',  8,  4],
+  'Zwinglihaus':             [502, 672, 'start',  8,  4],
+  'Mönchsbergerstrasse':     [488, 688, 'start',  8,  4],
+  'Leimgrubenweg':           [475, 704, 'start',  8,  4],
+  'Jakobsberg':              [462, 720, 'start',  8,  4],
+  'Hechtliacker':            [450, 735, 'start',  8,  4],
+  'Hauensteinstrasse':       [438, 750, 'start',  8, -5],
+};
+
+// ============================================================
+//  LINE DEFINITIONS  (number, stops[])
+// ============================================================
+const LINES = [
+  {
+    num: 1,
+    stops: [
+      'Dreirosenbrücke','Novartis Campus','Voltaplatz','Bahnhof St. Johann',
+      'Kannenfeldplatz','Burgfelderplatz','Hegenheimerstrasse','Birmannsgasse',
+      'Brausebad','Schützenhaus','Zoo Bachletten','Markthalle','Bahnhof SBB'
+    ]
+  },
+  {
+    num: 2,
+    stops: [
+      'Binningen Kronenplatz','Binningen Hohle Gasse','Zoo Dorenbach','Margarethen',
+      'IWB','Markthalle','Bahnhof SBB','Kirschgarten','Bankverein','Kunstmuseum',
+      'Wettsteinplatz','Messeplatz','Gewerbeschule','Badischer Bahnhof',
+      'Hirzbrunnen/Claraspital','Eglisee','Riehen Habermatten','Riehen Niederholzboden',
+      'Riehen Burgstrasse','Riehen Pfaffenloh','Riehen Bettingerstrasse','Riehen Dorf',
+      'Riehen Fondation Beyeler','Riehen Weilstrasse','Riehen Lörracherstrasse','Riehen Grenze'
+    ]
+  },
+  {
+    num: 3,
+    stops: [
+      'Gare de Saint-Louis','Soleil','Place Mermoz','Saint-Exupéry',
+      'Burgfelderhof','Waldighoferstrasse','Felix Platter-Spital','Strassburgerallee',
+      'Burgfelderplatz','Hegenheimerstrasse','Birmannsgasse','Brausebad',
+      'Schützenhaus','Zoo Bachletten','Markthalle','Bahnhof SBB','Aeschenplatz',
+      'Hardstrasse','Denkmal','St. Alban-Tor','Waldenburgerstrasse','Breite',
+      'Birsfelden Bären','Birsfelden Schulstrasse','Birsfelden Salinenstrasse','Birsfelden Hard'
+    ]
+  },
+  {
+    num: 6,
+    stops: [
+      'Allschwil Morgartenring','Allschwilerplatz','Brausebad','Schützenhaus',
+      'Zoo Bachletten','Markthalle','Heuwaage','Theater','Barfüsserplatz',
+      'Marktplatz','Schifflände','Rheingasse','Claraplatz','Clarastrasse',
+      'Messeplatz','Gewerbeschule','Badischer Bahnhof','Hirzbrunnen/Claraspital',
+      'Eglisee','Riehen Habermatten','Riehen Niederholzboden','Riehen Burgstrasse',
+      'Riehen Pfaffenloh','Riehen Bettingerstrasse','Riehen Dorf',
+      'Riehen Fondation Beyeler','Riehen Weilstrasse','Riehen Lörracherstrasse','Riehen Grenze'
+    ]
+  },
+  {
+    num: 8,
+    stops: [
+      'Neuweilerstrasse','Im langen Loh','Neubad','Laupenring','Bernerring',
+      'Bundesplatz','Schützenhaus','Zoo Bachletten','Markthalle','Bahnhof SBB',
+      'Aeschenplatz','Bankverein','Barfüsserplatz','Marktplatz','Schifflände',
+      'Rheingasse','Claraplatz','Kaserne','Feldbergstrasse','Bläsiring',
+      'Dreirosenbrücke','Ciba','Wiesenplatz','Kleinhüningen','Kleinhüningeranlage',
+      'Dreiländerbrücke','Riedlistr/Kesselhaus','Weil am Rhein Bahnhof'
+    ]
+  },
+  {
+    num: 10,
+    stops: [
+      'Dornach Bahnhof','Arlesheim Stollenrain','Arlesheim Dorf','Arlesheim Im Lee',
+      'Arlesheim Baselstrasse','Arlesheim Walzwerk','Münchenstein Dorf',
+      'Münchenstein Elektra Birseck','Münchenstein Hofmatt','Münchenstein Zollweiden',
+      'Münchenstein Birseckstrasse','Münchenstein Neuewelt','Dreispitz','MParc',
+      'Münchensteinersstrasse','Peter-Merian','Bahnhof SBB','Aeschenplatz','Bankverein',
+      'Theater','Heuwaage','Zoo','Binningen Dorenbach','Binningen Oberdorf',
+      'Binningen Schloss','Binningen Bottmingermühle','Bottmingen Batteriestrasse',
+      'Bottmingen Schloss','Oberwil Stallen','Oberwil Zentrum','Oberwil Hüslimatt',
+      'Therwil Zentrum','Therwil Känelmatt','Ettingen Dorf','Witterswil Sonnenrain',
+      'Witterswil Station','Bättwil Dorf','Flüh Station','Leymen Station','Rodersdorf Station'
+    ]
+  },
+  {
+    num: 11,
+    stops: [
+      'St-Louis Grenze','Hüningerstrasse','Voltaplatz','Mülhauserstrasse',
+      'St. Johanns-Tor','Johanniterbrücke','Universitätsspital','Schifflände',
+      'Marktplatz','Barfüsserplatz','Bankverein','Aeschenplatz','Bahnhof SBB',
+      'Peter-Merian','Münchensteinersstrasse','MParc','Dreispitz'
+    ]
+  },
+  {
+    num: 14,
+    stops: [
+      'Dreirosenbrücke','Brombacherstrasse','Musical Theater','Riehenring',
+      'Messeplatz','Clarastrasse','Claraplatz','Rheingasse','Schifflände',
+      'Marktplatz','Barfüsserplatz','Bankverein','Aeschenplatz',
+      'Hardstrasse','Sevogelplatz','Grellingerstrasse','Karl Barth-Platz','Zeughaus',
+      'St. Jakob','Muttenz Freidorf','Muttenz Käppeli','Muttenz Zum Park',
+      'Muttenz Schützenhausstrasse','Muttenz Dorf','Muttenz Rothausstrasse',
+      'Muttenz Lachmatt','Pratteln Kästeli','Pratteln Gempenstrasse',
+      'Pratteln Bahnhofstrasse','Pratteln Schlossstrasse'
+    ]
+  },
+  {
+    num: 15,
+    stops: [
+      'Messeplatz','Clarastrasse','Claraplatz','Rheingasse','Schifflände',
+      'Marktplatz','Barfüsserplatz','Bankverein','Aeschenplatz','Denkmal',
+      'Grosspeterstrasse','Heiliggeistkirche','Tellplatz','Bruderholzstrasse',
+      'Wolfschlucht','Lerchenstrasse','Studio Basel','Airolostrasse','Bruderholz'
+    ]
+  },
+  {
+    num: 16,
+    stops: [
+      'Bruderholz','Hauensteinstrasse','Hechtliacker','Jakobsberg','Leimgrubenweg',
+      'Mönchsbergerstrasse','Zwinglihaus','Bhfeingang Gundeldingen','Solothurnerstrasse',
+      'Heiliggeistkirche','Tellplatz','IWB','Markthalle','Heuwaage','Theater',
+      'Barfüsserplatz','Marktplatz','Schifflände'
+    ]
+  },
+  {
+    num: 17,
+    stops: [
+      'Wiesenplatz','Ciba','Dreirosenbrücke','Bläsiring','Feldbergstrasse',
+      'Kaserne','Claraplatz','Rheingasse','Schifflände','Marktplatz',
+      'Barfüsserplatz','Theater','Heuwaage','Zoo','Binningen Dorenbach',
+      'Binningen Oberdorf','Binningen Schloss','Binningen Bottmingermühle',
+      'Bottmingen Batteriestrasse','Bottmingen Schloss','Oberwil Stallen',
+      'Oberwil Zentrum','Oberwil Hüslimatt','Therwil Zentrum','Therwil Känelmatt',
+      'Ettingen Dorf'
+    ]
+  },
+  {
+    num: 21,
+    stops: [
+      'Bahnhof St. Johann','Voltaplatz','Novartis Campus','Dreirosenbrücke',
+      'Brombacherstrasse','Musical Theater','Riehenring','Messeplatz',
+      'Gewerbeschule','Badischer Bahnhof'
+    ]
+  }
+];
+
+// ============================================================
+//  TERMINUS & MAJOR-STOP CLASSIFICATION
+// ============================================================
+// Collect all termini
+const terminusSets = new Set();
+LINES.forEach(l => {
+  terminusSets.add(l.stops[0]);
+  terminusSets.add(l.stops[l.stops.length - 1]);
+});
+
+// Collect how many lines use each stop
+const lineCount = {};
+LINES.forEach(l => {
+  l.stops.forEach(s => {
+    lineCount[s] = (lineCount[s] || 0) + 1;
+  });
+});
+
+const MAJOR_STOPS = new Set([
+  'Bahnhof SBB','Badischer Bahnhof','Barfüsserplatz','Marktplatz',
+  'Bankverein','Aeschenplatz','Schifflände','Dreirosenbrücke',
+  'Theater','Heuwaage','Messeplatz','Claraplatz','Markthalle',
+  'Brausebad','Zoo Bachletten','Schützenhaus','Rheingasse',
+  'Dreispitz','Peter-Merian'
+]);
+
+// ============================================================
+//  DRAW THE MAP
+// ============================================================
+window.onload = function() {
+  const svg = document.getElementById('map');
+
+  // --- 1. Draw all line tracks ---
+  LINES.forEach(line => {
+    const pts = line.stops.map(name => {
+      if (!S[name]) { console.warn('Missing stop:', name, 'in line', line.num); return null; }
+      return S[name];
+    }).filter(Boolean);
+
+    if (pts.length < 2) return;
+
+    const polyline = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    polyline.setAttribute('points', pts.map(p => p[0]+','+p[1]).join(' '));
+    polyline.setAttribute('class','line-track');
+    polyline.setAttribute('data-line', line.num);
+    svg.appendChild(polyline);
+  });
+
+  // --- 2. Draw weichen (junctions / switches) ---
+  // A Weiche exists where a stop is used by multiple lines and at least one branch exists
+  // We mark branch points with a small diamond
+  const junctions = new Set();
+  LINES.forEach(line => {
+    line.stops.forEach((name, i) => {
+      if (i > 0 && i < line.stops.length - 1 && lineCount[name] >= 2) {
+        junctions.add(name);
+      }
+    });
+  });
+
+  // --- 3. Draw stops ---
+  const drawnStops = new Set();
+  // Draw terminus stops first (filled circles)
+  LINES.forEach(line => {
+    [line.stops[0], line.stops[line.stops.length-1]].forEach(name => {
+      if (!S[name] || drawnStops.has(name)) return;
+      drawnStops.add(name);
+      const [x, y] = S[name];
+      const r = 7;
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('cx', x);
+      circle.setAttribute('cy', y);
+      circle.setAttribute('r', r);
+      circle.setAttribute('class','stop-terminus');
+      svg.appendChild(circle);
+
+      // Line number badge
+      const linesAtStop = LINES.filter(l => l.stops[0] === name || l.stops[l.stops.length-1] === name);
+      linesAtStop.forEach((l, idx) => {
+        const bw = 16, bh = 14;
+        const bx = x + (idx % 2 === 0 ? 10 : 28);
+        const by = y - 7 + Math.floor(idx / 2) * 16;
+        const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+        rect.setAttribute('x', bx - bw/2);
+        rect.setAttribute('y', by - bh/2);
+        rect.setAttribute('width', bw);
+        rect.setAttribute('height', bh);
+        rect.setAttribute('rx', 3);
+        rect.setAttribute('class','line-badge');
+        svg.appendChild(rect);
+        const txt = document.createElementNS('http://www.w3.org/2000/svg','text');
+        txt.setAttribute('x', bx);
+        txt.setAttribute('y', by + 4);
+        txt.setAttribute('text-anchor','middle');
+        txt.setAttribute('class','line-num');
+        txt.textContent = l.num;
+        svg.appendChild(txt);
+      });
+    });
+  });
+
+  // Draw all intermediate stops
+  Object.keys(S).forEach(name => {
+    if (drawnStops.has(name)) return;
+    if (!lineCount[name]) return; // stop not used by any line
+    drawnStops.add(name);
+    const [x, y] = S[name];
+    const isMajor = MAJOR_STOPS.has(name) || lineCount[name] >= 3;
+    const r = isMajor ? 5.5 : 4;
+    const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', r);
+    circle.setAttribute('class', isMajor ? 'stop-major' : 'stop-circle');
+    svg.appendChild(circle);
+
+    // Junction diamond (Weiche) for branching points
+    if (junctions.has(name) && lineCount[name] >= 3) {
+      const size = 5;
+      const diamond = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      diamond.setAttribute('points',
+        `${x},${y-size} ${x+size},${y} ${x},${y+size} ${x-size},${y}`
+      );
+      diamond.setAttribute('class','switch-diamond');
+      svg.appendChild(diamond);
+    }
+  });
+
+  // --- 4. Draw labels ---
+  Object.keys(S).forEach(name => {
+    if (!lineCount[name]) return;
+    const [x, y, anchor, dx, dy] = S[name];
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', x + (dx||0));
+    text.setAttribute('y', y + (dy||0));
+    text.setAttribute('text-anchor', anchor || 'middle');
+    text.setAttribute('class','stop-label');
+    text.textContent = name;
+    svg.appendChild(text);
+  });
+
+  // --- 5. Line number labels at termini ---
+  // Already drawn as badges above
+
+  // --- 6. Draw Weiche tick marks (small perpendicular lines at branch points) ---
+  // Visual indicator for switches between lines
+  junctions.forEach(name => {
+    if (!S[name]) return;
+    const [x, y] = S[name];
+    if (lineCount[name] < 2) return;
+    // Small white dot over junction to distinguish switch
+    if (lineCount[name] >= 4) {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', x);
+      dot.setAttribute('cy', y);
+      dot.setAttribute('r', 3);
+      dot.setAttribute('fill','#fff');
+      dot.setAttribute('stroke','#1e1e1e');
+      dot.setAttribute('stroke-width','1.5');
+      svg.appendChild(dot);
+    }
+  });
+};
+</script>
+
+<!-- Inline rendering trigger -->
+<script>
+// Execute immediately after DOM is ready (data script has already run)
+document.addEventListener('DOMContentLoaded', function() {
+  // The onload handler above takes care of everything
+});
+</script>
+
+</svg>
+</div>
+
+<!-- ═══════════════════════════════════════════ LEGEND ═══ -->
+<div style="padding: 14px 20px; display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; background:#fff; border-top:1px solid #ddd;">
+  <div style="min-width:180px;">
+    <div style="font-size:11px; font-weight:700; letter-spacing:0.06em; color:#333; margin-bottom:8px; text-transform:uppercase;">Tramlinien</div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">1</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">2</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">3</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">6</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">8</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">10</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">11</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">14</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">15</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">16</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">17</span>
+      <span style="background:#1e1e1e;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">21</span>
+    </div>
+  </div>
+  <div style="min-width:160px; font-size:10px; color:#444; line-height:1.8;">
+    <div style="font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:5px; font-size:11px;">Legende</div>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+      <svg width="22" height="12"><line x1="0" y1="6" x2="22" y2="6" stroke="#1e1e1e" stroke-width="3.5"/></svg>
+      Tramstrecke
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+      <svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="white" stroke="#1e1e1e" stroke-width="2"/></svg>
+      Haltestelle
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+      <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="#1e1e1e"/></svg>
+      Endstation
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px;">
+      <svg width="14" height="14">
+        <polygon points="7,1 13,7 7,13 1,7" fill="#1e1e1e"/>
+      </svg>
+      Weiche / Abzweigung
+    </div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <svg width="22" height="12"><line x1="0" y1="6" x2="22" y2="6" stroke="#888" stroke-width="1.5" stroke-dasharray="5,3"/></svg>
+      Landesgrenze
+    </div>
+  </div>
+  <div style="font-size:9px; color:#888; max-width:300px; line-height:1.5; margin-top:auto;">
+    BVB Linien: 1, 2, 3, 6, 8, 14, 15, 16, 21 · BLT Linien: 10, 11, 17<br>
+    Schematische Darstellung · Gültig ab 14.12.2025
+  </div>
+</div>
+
+</body>
+</html>
